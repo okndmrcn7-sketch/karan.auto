@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>KARAN AUTO - Tam Servis Dosyası (İş Emri & Bakım Planı)</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 7mm 9mm;
+  }
+  * {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #eef1f5;
+    color: #111827;
+    font-size: 9pt;
+    line-height: 1.25;
+  }
+
+  /* Kontrol Çubuğu */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #111827;
+    color: #fff;
+    padding: 9px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .toolbar-info {
+    font-size: 10pt;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toolbar-badge {
+    background: #10b981;
+    color: #fff;
+    font-size: 8pt;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+  .toolbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    border: none;
+    padding: 7px 14px;
+    border-radius: 4px;
+    font-size: 9pt;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-print { background: #dc2626; color: #fff; }
+  .btn-print:hover { background: #b91c1c; }
+  .btn-next { background: #2563eb; color: #fff; }
+  .btn-next:hover { background: #1d4ed8; }
+  .btn-add { background: #059669; color: #fff; }
+  .btn-add:hover { background: #047857; }
+  .btn-reset { background: #4b5563; color: #fff; }
+  .btn-reset:hover { background: #374151; }
+
+  /* Sayfa Konteyneri */
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 14px auto;
+    background: #fff;
+    padding: 8mm 10mm;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.12);
+    position: relative;
+  }
+  .page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  /* Antet / Üst Başlık */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2.5px solid #111827;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .brand-box h1 {
+    margin: 0;
+    font-size: 21pt;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #111827;
+    line-height: 1;
+  }
+  .brand-box .sub-brand {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #dc2626;
+    letter-spacing: 1.5px;
+    margin-top: 2px;
+  }
+  .brand-box p {
+    margin: 3px 0 0 0;
+    font-size: 8pt;
+    color: #374151;
+  }
+  .doc-meta {
+    text-align: right;
+    font-size: 8.5pt;
+  }
+  .doc-title-badge {
+    background: #111827;
+    color: #fff;
+    font-weight: 800;
+    font-size: 11pt;
+    padding: 3px 10px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .doc-title-badge.red {
+    background: #dc2626;
+  }
+  .meta-row {
+    margin-top: 2px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+  }
+  .meta-label {
+    font-weight: 700;
+    color: #374151;
+  }
+
+  /* Form Inputları */
+  input[type="text"], input[type="number"], select, textarea {
+    border: 1px solid #cbd5e1;
+    border-radius: 2px;
+    padding: 2px 5px;
+    font-size: 8.5pt;
+    color: #111827;
+    background: #f8fafc;
+    font-weight: 600;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #dc2626;
+    background: #fff;
+  }
+  .job-no-box {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .job-no-input {
+    width: 115px;
+    font-weight: 800 !important;
+    color: #dc2626 !important;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .btn-mini-step {
+    background: #e2e8f0;
+    border: 1px solid #94a3b8;
+    color: #1e293b;
+    font-size: 7.5pt;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .btn-mini-step:hover {
+    background: #cbd5e1;
+  }
+
+  /* Bilgi Kartları (Grid) */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .card {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 6px 8px;
+  }
+  .card-title {
+    font-size: 8pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #fff;
+    background: #1f2937;
+    padding: 2px 6px;
+    margin: -6px -8px 6px -8px;
+    letter-spacing: 0.4px;
+  }
+  .field-group {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .field-group:last-child { margin-bottom: 0; }
+  .field-group label {
+    font-size: 8pt;
+    font-weight: 700;
+    color: #374151;
+  }
+  .field-group input, .field-group select {
+    width: 100%;
+  }
+  .vehicle-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 68px;
+    gap: 4px;
+  }
+  .inline-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  /* Şikayet / Talep Kutusu */
+  .complaint-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+  }
+  .complaint-box textarea {
+    width: 100%;
+    height: 44px;
+    resize: none;
+    font-weight: 500;
+  }
+
+  /* Parça Tablosu (Sayfa 1) */
+  .section-bar {
+    background: #111827;
+    color: #fff;
+    font-weight: 800;
+    font-size: 8.5pt;
+    padding: 3px 8px;
+    letter-spacing: 0.4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .parts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+  .parts-table th {
+    background: #e5e7eb;
+    color: #111827;
+    font-size: 7.8pt;
+    font-weight: 800;
+    border: 1px solid #9ca3af;
+    padding: 4px 5px;
+    text-align: left;
+  }
+  .parts-table td {
+    border: 1px solid #cbd5e1;
+    padding: 2.5px 4px;
+    vertical-align: middle;
+  }
+  .parts-table td input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 1.5px 3px;
+    font-size: 8.2pt;
+  }
+  .parts-table td input:focus {
+    background: #fef2f2;
+  }
+  .oem-input {
+    font-family: 'Consolas', 'Courier New', monospace !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .text-center { text-align: center !important; }
+  .text-right { text-align: right !important; }
+  .row-total {
+    font-weight: 700;
+    font-size: 8.3pt;
+    color: #111827;
+    padding-right: 4px;
+  }
+  .del-btn {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 9pt;
+    padding: 0 3px;
+  }
+
+  /* Alt Hesap ve Özet Bölümü (Sayfa 1) */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .notes-panel {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 6px 8px;
+  }
+  .notes-panel textarea {
+    width: 100%;
+    height: 76px;
+    resize: none;
+    font-weight: 500;
+  }
+  .totals-panel {
+    border: 1.5px solid #111827;
+    border-radius: 3px;
+    padding: 6px 8px;
+    background: #f8fafc;
+  }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    border-bottom: 1px dashed #cbd5e1;
+    font-size: 8.5pt;
+  }
+  .total-row:last-child {
+    border-bottom: none;
+    border-top: 2px solid #111827;
+    margin-top: 3px;
+    padding-top: 5px;
+    font-size: 10pt;
+    font-weight: 900;
+    color: #dc2626;
+  }
+  .total-row input, .total-row select {
+    width: 95px;
+    text-align: right;
+    font-weight: 700;
+  }
+
+  /* Teslim & İmza Alanı */
+  .legal-text {
+    font-size: 7.2pt;
+    color: #4b5563;
+    background: #f3f4f6;
+    padding: 4px 6px;
+    border-left: 3px solid #dc2626;
+    margin-bottom: 8px;
+  }
+  .signatures {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+  .sig-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 5px;
+    height: 58px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .sig-title {
+    font-size: 7.8pt;
+    font-weight: 800;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 2px;
+  }
+  .sig-sub {
+    font-size: 7pt;
+    color: #6b7280;
+  }
+
+  /* SAYFA 2: PERİYODİK BAKIM KONTROL LİSTESİ STİLLERİ */
+  .p2-summary-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 5px 7px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    font-size: 8pt;
+  }
+  .p2-summary-item span {
+    font-weight: 700;
+    color: #475569;
+    display: block;
+    font-size: 7.2pt;
+  }
+  .p2-summary-item strong {
+    color: #0f172a;
+    font-size: 8.3pt;
+  }
+
+  .maint-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    padding: 5px 7px;
+    border-radius: 3px;
+  }
+  .maint-settings label {
+    font-size: 7.4pt;
+    font-weight: 800;
+    color: #9f1239;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .maint-settings select {
+    width: 100%;
+    background: #fff;
+    border-color: #fda4af;
+    font-size: 8pt;
+  }
+
+  .check-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    margin-bottom: 6px;
+  }
+  .check-group {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    margin-bottom: 5px;
+    overflow: hidden;
+  }
+  .check-group-header {
+    background: #1f2937;
+    color: #fff;
+    font-size: 7.6pt;
+    font-weight: 800;
+    padding: 2.5px 6px;
+    letter-spacing: 0.3px;
+  }
+  .check-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.4pt;
+  }
+  .check-table tr {
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .check-table tr:last-child {
+    border-bottom: none;
+  }
+  .check-table td {
+    padding: 2px 4px;
+    vertical-align: middle;
+  }
+  .check-action {
+    color: #475569;
+    font-weight: 600;
+    font-size: 6.9pt;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .check-box-cell {
+    width: 18px;
+    text-align: center;
+  }
+  .check-box-cell input[type="checkbox"] {
+    width: 11px;
+    height: 11px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: #dc2626;
+  }
+  .note-tag {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 6.7pt;
+    padding: 1.5px 4px;
+    border-top: 1px dashed #f59e0b;
+  }
+
+  .tire-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    padding: 4px 6px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .tire-item label {
+    display: block;
+    font-size: 7.2pt;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 2px;
+  }
+  .tire-item input {
+    width: 48px;
+    text-align: center;
+    font-size: 7.8pt;
+    padding: 1px 2px;
+  }
+
+  .p2-footer {
+    display: grid;
+    grid-template-columns: 1.4fr 0.6fr;
+    gap: 8px;
+  }
+  .p2-notes {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 4px 6px;
+  }
+  .p2-notes label {
+    font-size: 7.5pt;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .p2-notes textarea {
+    width: 100%;
+    height: 36px;
+    resize: none;
+    font-size: 7.8pt;
+  }
+  .p2-sig {
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+    font-size: 7.4pt;
+  }
+
+  /* Yazdırma Kuralları */
+  @media print {
+    body { background: #fff; }
+    .toolbar, .del-btn, .no-print, .btn-mini-step { display: none !important; }
+    .page {
+      margin: 0;
+      padding: 0;
+      box-shadow: none;
+      width: 100%;
+      min-height: auto;
+    }
+    input[type="text"], input[type="number"], select, textarea {
+      border: none;
+      background: transparent;
+      padding: 0;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .parts-table td input {
+      border: none;
+    }
+    .total-row input, .total-row select {
+      border: none;
+      background: transparent;
+    }
+    .tire-item input {
+      border-bottom: 1px solid #64748b;
+    }
+    .maint-settings select {
+      border: none;
+      background: transparent;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="toolbar-info">
+    <span>KARAN AUTO — Tam Servis Dosyası (İş Emri + Bakım Planı)</span>
+    <span class="toolbar-badge" id="autoNoStatus">Otomatik Sıra Aktif</span>
+  </div>
+  <div class="toolbar-actions">
+    <button class="btn btn-next" onclick="nextJobOrder()">⏭ Yeni İş Emri (Sıradaki No)</button>
+    <button class="btn btn-add" onclick="addPartRow()">+ Parça Satırı Ekle</button>
+    <button class="btn btn-reset" onclick="resetFormKeepNo()">↺ Mevcut Formu Temizle</button>
+    <button class="btn btn-print" onclick="printAndAdvance()">🖨 Yazdır / PDF Kaydet</button>
+  </div>
+</div>
+
+<!-- ==================== SAYFA 1: SERVİS İŞ EMRİ ==================== -->
+<div class="page">
+  <div class="header">
+    <div class="brand-box">
+      <h1>KARAN AUTO</h1>
+      <div class="sub-brand">ÖZEL OTO SERVİS &amp; PERİYODİK BAKIM MERKEZİ</div>
+      <p>Yeşiloba Mh., 46093. Sk. No: 4, Seyhan / Adana • Tel: +90 552 007 77 01</p>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-title-badge">SERVİS İŞ EMRİ</div>
+      <div class="meta-row">
+        <span class="meta-label">Tarih / Saat:</span>
+        <span id="currentDateTime" style="font-weight:700;"></span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">İş Emri No:</span>
+        <div class="job-no-box">
+          <input type="text" id="jobNo" class="job-no-input" oninput="syncToPage2(); saveManualJobNo();">
+          <button type="button" class="btn-mini-step" title="Numarayı +1 İlerlet" onclick="incrementJobNo()">+1</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Müşteri Bilgileri -->
+    <div class="card">
+      <div class="card-title">1. Müşteri &amp; Teslim Bilgileri</div>
+      <div class="field-group">
+        <label>Müşteri Adı / Ünvan:</label>
+        <input type="text" id="custName" placeholder="Ad Soyad veya Firma Adı" oninput="syncToPage2()">
+      </div>
+      <div class="field-group">
+        <label>Telefon Numarası:</label>
+        <input type="text" id="custPhone" placeholder="05XX XXX XX XX">
+      </div>
+      <div class="field-group">
+        <label>İşlem Kategorisi:</label>
+        <select id="serviceCategory" onchange="syncToPage2()">
+          <option value="Periyodik Bakım">Periyodik Bakım</option>
+          <option value="Mekanik Onarım">Mekanik Onarım</option>
+          <option value="Motor Mekanik">Motor Mekanik</option>
+          <option value="Şanzıman / Kavrama">Şanzıman / Kavrama</option>
+          <option value="Fren & Ön Düzen">Fren &amp; Ön Düzen</option>
+          <option value="Elektrik & Elektronik">Elektrik &amp; Elektronik</option>
+          <option value="Klima & Soğutma">Klima &amp; Soğutma</option>
+          <option value="Ağır Bakım (Triger/Devirdaim)">Ağır Bakım (Triger / Devirdaim)</option>
+          <option value="Arıza Tespiti / Genel Kontrol">Arıza Tespiti / Genel Kontrol</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Sorumlu Teknisyen:</label>
+        <input type="text" id="techName" placeholder="Usta / Teknisyen Adı" oninput="syncToPage2()">
+      </div>
+    </div>
+
+    <!-- Araç Bilgileri -->
+    <div class="card">
+      <div class="card-title">2. Araç Bilgileri</div>
+      <div class="field-group">
+        <label>Marka / Model / Yıl:</label>
+        <div class="vehicle-row">
+          <input type="text" id="carMake" list="makeList" placeholder="Marka Seç/Yaz" oninput="updateModels(); syncToPage2();">
+          <datalist id="makeList"></datalist>
+
+          <input type="text" id="carModel" list="modelList" placeholder="Model Seç/Yaz" oninput="syncToPage2()">
+          <datalist id="modelList"></datalist>
+
+          <select id="carYear" onchange="syncToPage2()">
+            <option value="">Yıl</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Plaka / Giriş KM:</label>
+        <div class="inline-2">
+          <input type="text" id="carPlate" placeholder="01 XXX 000" style="text-transform:uppercase;" oninput="syncToPage2()">
+          <input type="text" id="carKm" placeholder="Örn: 120.000 km" oninput="syncToPage2()">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Şasi No (VIN):</label>
+        <input type="text" id="carVin" placeholder="17 Haneli Şasi Numarası" style="text-transform:uppercase; font-family:Consolas, monospace;" oninput="syncToPage2()">
+      </div>
+      <div class="field-group">
+        <label>Yakıt / Şanzıman:</label>
+        <div class="inline-2">
+          <select id="fuelType">
+            <option value="">Yakıt Tipi</option>
+            <option value="Dizel">Dizel</option>
+            <option value="Benzin">Benzin</option>
+            <option value="Benzin + LPG">Benzin + LPG</option>
+            <option value="Hibrit">Hibrit</option>
+            <option value="Elektrik">Elektrik</option>
+          </select>
+          <select id="gearType">
+            <option value="">Şanzıman</option>
+            <option value="Otomatik (DSG/DCT/ZF)">Otomatik</option>
+            <option value="Manuel (Düz)">Manuel</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Müşteri Şikayetleri -->
+  <div class="complaint-box">
+    <div style="font-size:7.8pt; font-weight:800; color:#1f2937; margin-bottom:3px; text-transform:uppercase;">3. Müşteri Şikayetleri ve Talep Edilen İşlemler</div>
+    <textarea id="custComplaint" placeholder="Aracın geliş şikayeti, bakım talebi veya kontrol edilmesi istenen arızaları buraya yazınız..."></textarea>
+  </div>
+
+  <!-- Kullanılan Yedek Parçalar ve OEM Listesi -->
+  <div class="section-bar">
+    <span>4. KULLANILAN YEDEK PARÇALAR VE MALZEME DÖKÜMÜ</span>
+    <span style="font-size:7.5pt; font-weight:500;">OEM / Parça kodlarını doğrudan girebilirsiniz</span>
+  </div>
+  <table class="parts-table" id="partsTable">
+    <thead>
+      <tr>
+        <th style="width:28px;" class="text-center">#</th>
+        <th style="width:145px;">OEM / Parça No</th>
+        <th>Parça Adı / Yapılan İşlem Açıklaması</th>
+        <th style="width:48px;" class="text-center">Adet</th>
+        <th style="width:88px;" class="text-right">Birim Fiyat (₺)</th>
+        <th style="width:92px;" class="text-right">Tutar (₺)</th>
+        <th style="width:22px;" class="no-print"></th>
+      </tr>
+    </thead>
+    <tbody id="partsBody">
+    </tbody>
+  </table>
+
+  <!-- Teknisyen Bulguları & Maliyet Özeti -->
+  <div class="bottom-grid">
+    <div class="notes-panel">
+      <div style="font-size:7.8pt; font-weight:800; color:#1f2937; margin-bottom:3px; text-transform:uppercase;">5. Servis Bulguları ve Sonraki Bakım Tavsiyeleri</div>
+      <textarea id="serviceNotes" placeholder="Tespit edilen ek durumlar, değişmesi önerilen parçalar veya sonraki bakım hatırlatmaları..."></textarea>
+    </div>
+
+    <div class="totals-panel">
+      <div class="total-row">
+        <span>Yedek Parça Toplamı:</span>
+        <strong id="partsSubtotal">0,00 ₺</strong>
+      </div>
+      <div class="total-row">
+        <span>İşçilik Tutarı (₺):</span>
+        <input type="number" id="laborAmount" value="0" min="0" step="50" oninput="calculateTotals()">
+      </div>
+      <div class="total-row">
+        <span>Ara Toplam (KDV Hariç):</span>
+        <strong id="netSubtotal">0,00 ₺</strong>
+      </div>
+      <div class="total-row">
+        <span>KDV Oranı:</span>
+        <select id="vatRate" onchange="calculateTotals()">
+          <option value="20" selected>%20 KDV</option>
+          <option value="10">%10 KDV</option>
+          <option value="0">%0 (KDV Hariç)</option>
+        </select>
+      </div>
+      <div class="total-row">
+        <span>KDV Tutarı:</span>
+        <strong id="vatAmount">0,00 ₺</strong>
+      </div>
+      <div class="total-row">
+        <span>GENEL TOPLAM:</span>
+        <span id="grandTotal">0,00 ₺</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legal-text">
+    <strong>Bilgilendirme:</strong> Yukarıda belirtilen işlemler müşteri onayı doğrultusunda gerçekleştirilmiştir. Araç içerisinde bırakılan kıymetli eşyalardan servisimiz sorumlu değildir. Değişen eski parçalar müşteri talebi üzerine teslim edilir.
+  </div>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <div class="sig-title">SERVİS DANIŞMANI / YETKİLİ</div>
+      <div class="sig-sub">KARAN AUTO • Kaşe / İmza</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-title">TEKNİSYEN KONTROL ONAYI</div>
+      <div class="sig-sub">İşlemler Tamamlandı • İmza</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-title">MÜŞTERİ TESLİM ALMA ONAYI</div>
+      <div class="sig-sub">Aracı Eksiksiz Teslim Aldım • İmza</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SAYFA 2: PERİYODİK BAKIM KONTROL LİSTESİ ==================== -->
+<div class="page page-break">
+  <div class="header">
+    <div class="brand-box">
+      <h1>KARAN AUTO</h1>
+      <div class="sub-brand">PERİYODİK BAKIM KONTROL LİSTESİ</div>
+      <p>Yeşiloba Mh., 46093. Sk. No: 4, Seyhan / Adana • Tel: +90 552 007 77 01</p>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-title-badge red">BAKIM KONTROL FORMU</div>
+      <div class="meta-row">
+        <span class="meta-label">Tarih:</span>
+        <span id="p2Date" style="font-weight:700;"></span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">İş Emri No:</span>
+        <span id="p2JobNo" style="font-weight:800; color:#dc2626;">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sayfa 1'den Otomatik Aktarılan Araç Özeti -->
+  <div class="p2-summary-bar">
+    <div class="p2-summary-item">
+      <span>ARAÇ MARKA / MODEL / YIL</span>
+      <strong id="p2Vehicle">-</strong>
+    </div>
+    <div class="p2-summary-item">
+      <span>PLAKA / KİLOMETRE</span>
+      <strong id="p2PlateKm">-</strong>
+    </div>
+    <div class="p2-summary-item">
+      <span>ŞASİ NO (VIN)</span>
+      <strong id="p2Vin" style="font-family:Consolas, monospace;">-</strong>
+    </div>
+    <div class="p2-summary-item">
+      <span>MÜŞTERİ / İŞLEM</span>
+      <strong id="p2CustCat">-</strong>
+    </div>
+  </div>
+
+  <!-- Bakım Tipi ve 15.000 km Katları Seçimi -->
+  <div class="maint-settings">
+    <div>
+      <label>BAKIM TİPİ</label>
+      <select id="maintType">
+        <option value="Sabit Servis Aralığı">Sabit Servis Aralığı</option>
+        <option value="Esnek Servis Aralığı (LongLife)">Esnek Servis Aralığı (LongLife)</option>
+        <option value="Ağır Bakım Paketi">Ağır Bakım Paketi</option>
+        <option value="Ara Bakım / Yağ Değişimi">Ara Bakım / Yağ Değişimi</option>
+      </select>
+    </div>
+    <div>
+      <label>ANA BAKIM ARALIĞI (15.000 KM KATLARI)</label>
+      <select id="mainInterval"></select>
+    </div>
+    <div>
+      <label>EK BAKIM PERİYODU</label>
+      <select id="extraInterval"></select>
+    </div>
+  </div>
+
+  <!-- 2 Sütunlu 33 Maddelik Kontrol Listesi -->
+  <div class="check-columns">
+    <!-- Sol Sütun -->
+    <div>
+      <div class="check-group">
+        <div class="check-group-header">1. ARAÇ ZEMİNDE KONTROLLER</div>
+        <table class="check-table">
+          <tr><td>Uygulanacak servis önlemleri ve geri çağırmalar</td><td class="check-action">Kontrol</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Emniyet kemerleri / bağlantı elemanları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Göstergeler / uyarı lambaları / korna / iç lambalar</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Ön ve arka silecek lastikleri</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Ön ve arka cam suyu / far yıkama sistemi</td><td class="check-action">Kontrol/ayar</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Aydınlatma sistemi / sinyaller / farlar</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Far yükseklik ayar sistemi</td><td class="check-action">Kontrol</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Kaporta / boya durum kontrolü</td><td class="check-action">Durum kontrolü</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Tavan penceresi işleyişi ve tahliye boruları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>SCR sistemi katkısı (AdBlue) seviyesi</td><td class="check-action">Kontrol/ekleme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+        </table>
+      </div>
+
+      <div class="check-group">
+        <div class="check-group-header">2. ARAÇ TAM KALDIRILMIŞ (ALT KONTROL)</div>
+        <table class="check-table">
+          <tr><td>Gövde altı boru/hortumları ve motor yağ sızıntıları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Motor yağı</td><td class="check-action">Tahliye/dolum</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Motor yağ filtresi</td><td class="check-action">Yenileme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Debriyaj hidroliği ve düz şanzıman yağ sızıntıları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Otomatik / Çift kavramalı şanzıman (DCT/DSG) yağı</td><td class="check-action">Kontrol/dolum</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Direksiyon mafsalları / kremayer / dişli kutusu</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Süspansiyon ve aks (tahrik mili) körük/mafsalları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Diferansiyel yağ sızıntıları / yaylar / amortisörler</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Gövde altı sızdırmazlık / muhafaza ve siperlikler</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sağ Sütun -->
+    <div>
+      <div class="check-group">
+        <div class="check-group-header">3. ARAÇ YARI KALDIRILMIŞ (FREN &amp; LASTİK)</div>
+        <table class="check-table">
+          <tr><td>Ön ve arka tekerlek rulmanları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Ön ve arka fren balataları ile fren diskleri</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Fren esnek hortumları ve bağlantıları</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Fren hidroliği</td><td class="check-action">Yenileme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Lastik genel durumu ve aşınma kontrolü</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Lastik hava basınçları</td><td class="check-action">Kontrol/ayar</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Lastik basınç takip sistemi (TPMS)</td><td class="check-action">Sıfırlama</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+        </table>
+      </div>
+
+      <div class="check-group">
+        <div class="check-group-header">4. MOTOR BÖLÜMÜ İŞLEMLERİ</div>
+        <table class="check-table">
+          <tr><td>Cam suyu / fren hidrolik deposu / antifriz seviyesi</td><td class="check-action">Kontrol/ekleme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Hava filtresi</td><td class="check-action">Yenileme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Hava filtre gövdesi / emiş boru ve hortumları</td><td class="check-action">Kontrol/temizlik</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Yakıt filtresi</td><td class="check-action">Yenileme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Triger kayışı / zinciri ve yardımcı tahrik kayışları</td><td class="check-action">Kontrol/yenileme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+        </table>
+      </div>
+
+      <div class="check-group">
+        <div class="check-group-header">5. SON KONTROL ÖGELERİ &amp; YOL TESTİ</div>
+        <table class="check-table">
+          <tr><td>Kabin (polen) filtresi</td><td class="check-action">Yenileme</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Bakım aralığı göstergesi ve arıza kaydı (OBD)</td><td class="check-action">Sıfırlama/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>Araç kilitleri / menteşeleri ve far ayarı</td><td class="check-action">Yağlama/ayar</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td>İlk yardım çantası / uyarı üçgeni / tamir kiti SKT</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+          <tr><td><strong>Yol Testi:</strong> Yol tutuşu / çalışma / performans</td><td class="check-action">Kontrol/rapor</td><td class="check-box-cell"><input type="checkbox"></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lastik Diş Derinliği Ölçüm Alanı -->
+  <div class="tire-bar">
+    <div class="tire-item">
+      <label>ÖN SOL LASTİK (mm)</label>
+      <input type="text" placeholder="____ mm">
+    </div>
+    <div class="tire-item">
+      <label>ÖN SAĞ LASTİK (mm)</label>
+      <input type="text" placeholder="____ mm">
+    </div>
+    <div class="tire-item">
+      <label>ARKA SOL LASTİK (mm)</label>
+      <input type="text" placeholder="____ mm">
+    </div>
+    <div class="tire-item">
+      <label>ARKA SAĞ LASTİK (mm)</label>
+      <input type="text" placeholder="____ mm">
+    </div>
+    <div class="tire-item">
+      <label>STEPNE / TAMİR KİTİ SKT</label>
+      <input type="text" style="width:85px;" placeholder="mm / SKT">
+    </div>
+  </div>
+
+  <!-- Sayfa 2 Alt Not ve Teknisyen Onayı -->
+  <div class="p2-footer">
+    <div class="p2-notes">
+      <label>TEKNİSYEN BAKIM NOTLARI VE ÖLÇÜM BULGULARI:</label>
+      <textarea placeholder="Fren balata kalınlıkları, akü ölçüm sonucu veya bakım sırasında tespit edilen özel notlar..."></textarea>
+    </div>
+    <div class="p2-sig">
+      <div style="font-weight:800; color:#111827;">BAKIMI YAPAN TEKNİSYEN</div>
+      <div id="p2TechDisplay" style="font-weight:700; color:#dc2626;">-</div>
+      <div style="border-top:1px solid #94a3b8; padding-top:2px; color:#64748b;">İmza &amp; Kontrol Onayı</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const vehicleData = {
+    "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "Q2", "Q3", "Q5", "Q7", "Q8", "e-tron"],
+    "BMW": ["1 Serisi", "2 Serisi", "3 Serisi", "4 Serisi", "5 Serisi", "6 Serisi", "7 Serisi", "X1", "X2", "X3", "X4", "X5", "X6", "iX"],
+    "Mercedes-Benz": ["A-Serisi", "B-Serisi", "C-Serisi", "CLA", "CLS", "E-Serisi", "S-Serisi", "GLA", "GLB", "GLC", "GLE", "Vito", "Sprinter"],
+    "Volkswagen": ["Polo", "Golf", "Jetta", "Passat", "Arteon", "T-Cross", "Taigo", "T-Roc", "Tiguan", "Touareg", "Caddy", "Transporter", "Crafter"],
+    "Renault": ["Clio", "Symbol", "Taliant", "Megane", "Fluence", "Talisman", "Captur", "Kadjar", "Austral", "Koleos", "Kangoo", "Express", "Trafic", "Master"],
+    "Fiat": ["Egea", "Linea", "Punto", "500", "500X", "500L", "Panda", "Fiorino", "Doblo", "Ducato"],
+    "Ford": ["Fiesta", "Focus", "Mondeo", "Puma", "Kuga", "EcoSport", "Edge", "Tourneo Courier", "Tourneo Connect", "Transit Custom", "Transit", "Ranger"],
+    "Toyota": ["Yaris", "Corolla", "Auris", "Camry", "C-HR", "RAV4", "Land Cruiser", "Hilux", "Proace City"],
+    "Hyundai": ["i10", "i20", "i30", "Accent Blue", "Elantra", "Bayon", "Kona", "Tucson", "Santa Fe", "Ioniq 5", "Staria", "H-100"],
+    "Peugeot": ["208", "301", "308", "408", "508", "2008", "3008", "5008", "Rifter", "Partner", "Expert", "Boxer"],
+    "Opel": ["Corsa", "Astra", "Insignia", "Crossland", "Mokka", "Grandland", "Combo", "Vivaro", "Movano"],
+    "Skoda": ["Fabia", "Scala", "Octavia", "Superb", "Kamiq", "Karoq", "Kodiaq"],
+    "Seat": ["Ibiza", "Leon", "Toledo", "Arona", "Ateca", "Tarraco"],
+    "Cupra": ["Formentor", "Leon", "Ateca", "Born"],
+    "Volvo": ["S40", "S60", "S90", "V40", "V60", "XC40", "XC60", "XC90"],
+    "Honda": ["Civic", "City", "Accord", "Jazz", "HR-V", "CR-V"],
+    "Nissan": ["Micra", "Juke", "Qashqai", "X-Trail", "Navara"],
+    "Dacia": ["Sandero", "Stepway", "Logan", "Lodgy", "Duster", "Jogger"],
+    "Kia": ["Picanto", "Rio", "Ceed", "Cerato", "Stonic", "XCeed", "Sportage", "Sorento", "Niro", "EV6", "Bongo"],
+    "Citroen": ["C3", "C3 Aircross", "C-Elysee", "C4", "C4 X", "C5 Aircross", "Berlingo", "Jumpy", "Jumper"],
+    "Chery": ["Omoda 5", "Tiggo 7 Pro", "Tiggo 8 Pro"],
+    "Togg": ["T10X"]
+  };
+
+  const STORAGE_KEY = "karan_auto_next_job_seq_v1";
+
+  function getTodayPrefix() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `KA-${y}${m}${d}-`;
+  }
+
+  function formatJobOrder(seqNum) {
+    return getTodayPrefix() + String(seqNum).padStart(3, '0');
+  }
+
+  function getStoredSequence() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      const parsed = parseInt(saved, 10);
+      return (!isNaN(parsed) && parsed > 0) ? parsed : 1;
+    } catch (e) {
+      return 1;
+    }
+  }
+
+  function setStoredSequence(seqNum) {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(seqNum));
+    } catch (e) {}
+  }
+
+  function initJobOrderNumber() {
+    const seq = getStoredSequence();
+    document.getElementById('jobNo').value = formatJobOrder(seq);
+    syncToPage2();
+  }
+
+  function saveManualJobNo() {
+    const val = document.getElementById('jobNo').value.trim();
+    const match = val.match(/(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > 0) {
+        setStoredSequence(num);
+      }
+    }
+  }
+
+  function incrementJobNo() {
+    const val = document.getElementById('jobNo').value.trim();
+    const match = val.match(/^(.*?)(\d+)$/);
+    if (match) {
+      const prefix = match[1];
+      const numStr = match[2];
+      const nextNum = parseInt(numStr, 10) + 1;
+      const padded = String(nextNum).padStart(numStr.length, '0');
+      document.getElementById('jobNo').value = prefix + padded;
+      setStoredSequence(nextNum);
+    } else {
+      const nextSeq = getStoredSequence() + 1;
+      document.getElementById('jobNo').value = formatJobOrder(nextSeq);
+      setStoredSequence(nextSeq);
+    }
+    syncToPage2();
+  }
+
+  function nextJobOrder() {
+    resetFormFieldsOnly();
+    incrementJobNo();
+  }
+
+  function printAndAdvance() {
+    window.print();
+    setTimeout(() => {
+      incrementJobNo();
+    }, 300);
+  }
+
+  function updateDateTime() {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('currentDateTime').textContent = `${dateStr} • ${timeStr}`;
+    document.getElementById('p2Date').textContent = dateStr;
+  }
+
+  function initDropdowns() {
+    // Marka listesi
+    const makeList = document.getElementById('makeList');
+    Object.keys(vehicleData).sort().forEach(make => {
+      const opt = document.createElement('option');
+      opt.value = make;
+      makeList.appendChild(opt);
+    });
+
+    // Model yılları
+    const yearSelect = document.getElementById('carYear');
+    for (let y = 2026; y >= 1995; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      yearSelect.appendChild(opt);
+    }
+
+    // 15.000 km ve katları (240.000 km'ye kadar)
+    const mainInt = document.getElementById('mainInterval');
+    const extraInt = document.getElementById('extraInterval');
+    for (let km = 15000; km <= 240000; km += 15000) {
+      const months = (km / 15000) * 12;
+      const label = `${km.toLocaleString('tr-TR')} km / ${months} ay`;
+
+      const opt1 = document.createElement('option');
+      opt1.value = label;
+      opt1.textContent = label;
+      if (km === 15000) opt1.selected = true;
+      mainInt.appendChild(opt1);
+
+      const opt2 = document.createElement('option');
+      opt2.value = `Her ${km.toLocaleString('tr-TR')} km'de`;
+      opt2.textContent = `Her ${km.toLocaleString('tr-TR')} km'de (${months} ay)`;
+      if (km === 60000) opt2.selected = true;
+      extraInt.appendChild(opt2);
+    }
+  }
+
+  function updateModels() {
+    const selectedMake = document.getElementById('carMake').value.trim();
+    const modelList = document.getElementById('modelList');
+    modelList.innerHTML = '';
+    if (vehicleData[selectedMake]) {
+      vehicleData[selectedMake].forEach(model => {
+        const opt = document.createElement('option');
+        opt.value = model;
+        modelList.appendChild(opt);
+      });
+    }
+  }
+
+  function addPartRow(oem = '', name = '', qty = 1, price = '') {
+    const tbody = document.getElementById('partsBody');
+    const rowCount = tbody.children.length + 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-center row-idx" style="font-weight:700; color:#6b7280;">${rowCount}</td>
+      <td><input type="text" class="oem-input" value="${oem}" placeholder="OEM / Kod"></td>
+      <td><input type="text" value="${name}" placeholder="Parça adı veya işlem detayı..."></td>
+      <td><input type="number" class="text-center qty-input" value="${qty}" min="1" step="1" oninput="calculateTotals()"></td>
+      <td><input type="number" class="text-right price-input" value="${price}" min="0" step="10" placeholder="0.00" oninput="calculateTotals()"></td>
+      <td class="text-right row-total">0,00 ₺</td>
+      <td class="text-center no-print"><button type="button" class="del-btn" onclick="removeRow(this)" title="Satırı Sil">×</button></td>
+    `;
+    tbody.appendChild(tr);
+    calculateTotals();
+  }
+
+  function removeRow(btn) {
+    const tbody = document.getElementById('partsBody');
+    if (tbody.children.length > 1) {
+      btn.closest('tr').remove();
+      Array.from(tbody.children).forEach((tr, idx) => {
+        tr.querySelector('.row-idx').textContent = idx + 1;
+      });
+      calculateTotals();
+    }
+  }
+
+  function formatMoney(val) {
+    return val.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+  }
+
+  function calculateTotals() {
+    const rows = document.querySelectorAll('#partsBody tr');
+    let partsSum = 0;
+
+    rows.forEach(tr => {
+      const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
+      const price = parseFloat(tr.querySelector('.price-input').value) || 0;
+      const rowTotal = qty * price;
+      tr.querySelector('.row-total').textContent = formatMoney(rowTotal);
+      partsSum += rowTotal;
+    });
+
+    const labor = parseFloat(document.getElementById('laborAmount').value) || 0;
+    const netTotal = partsSum + labor;
+    const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+    const vatAmount = netTotal * (vatRate / 100);
+    const grandTotal = netTotal + vatAmount;
+
+    document.getElementById('partsSubtotal').textContent = formatMoney(partsSum);
+    document.getElementById('netSubtotal').textContent = formatMoney(netTotal);
+    document.getElementById('vatAmount').textContent = formatMoney(vatAmount);
+    document.getElementById('grandTotal').textContent = formatMoney(grandTotal);
+  }
+
+  function syncToPage2() {
+    const jobNo = document.getElementById('jobNo').value.trim() || '-';
+    const make = document.getElementById('carMake').value.trim();
+    const model = document.getElementById('carModel').value.trim();
+    const year = document.getElementById('carYear').value;
+    const plate = document.getElementById('carPlate').value.trim().toUpperCase();
+    const km = document.getElementById('carKm').value.trim();
+    const vin = document.getElementById('carVin').value.trim().toUpperCase();
+    const cust = document.getElementById('custName').value.trim();
+    const cat = document.getElementById('serviceCategory').value;
+    const tech = document.getElementById('techName').value.trim();
+
+    document.getElementById('p2JobNo').textContent = jobNo;
+    const vehText = [make, model, year].filter(Boolean).join(' ') || '-';
+    document.getElementById('p2Vehicle').textContent = vehText;
+
+    const plateKmText = [plate, km].filter(Boolean).join(' • ') || '-';
+    document.getElementById('p2PlateKm').textContent = plateKmText;
+
+    document.getElementById('p2Vin').textContent = vin || '-';
+    document.getElementById('p2CustCat').textContent = [cust, cat].filter(Boolean).join(' • ') || '-';
+    document.getElementById('p2TechDisplay').textContent = tech || '-';
+  }
+
+  function resetFormFieldsOnly() {
+    document.querySelectorAll('input[type="text"]:not(#jobNo), textarea').forEach(el => el.value = '');
+    document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+    document.getElementById('carYear').value = '';
+    document.getElementById('fuelType').value = '';
+    document.getElementById('gearType').value = '';
+    document.getElementById('laborAmount').value = '0';
+
+    const tbody = document.getElementById('partsBody');
+    tbody.innerHTML = '';
+    for (let i = 0; i < 6; i++) addPartRow();
+    calculateTotals();
+    syncToPage2();
+  }
+
+  function resetFormKeepNo() {
+    if (!confirm('Mevcut formdaki müşteri, araç ve parça bilgileri temizlensin mi? (İş emri numarası korunacaktır)')) return;
+    resetFormFieldsOnly();
+  }
+
+  window.onload = function() {
+    updateDateTime();
+    setInterval(updateDateTime, 30000);
+    initDropdowns();
+    initJobOrderNumber();
+    for (let i = 0; i < 6; i++) addPartRow();
+  };
+</script>
+
+</body>
+</html>
